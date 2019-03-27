@@ -27,8 +27,7 @@ func Initialize(instruments []Instrument) {
 Start - Starts up the engine allowing for submitting/cancelling/matching of orders.
 Allows specification of a time duration to defer matching orders in the case of auction phase
 */
-func Start(deferMatchingDuration time.Duration) (orderChannel chan<- Order,
-	tradeExecutionChannel <-chan TradeExecutionReport) {
+func Start(deferMatchingDuration time.Duration) (orderChannel chan<- Order, tradeExecutionChannel <-chan TradeExecutionReport) {
 	if !isEngineInitialized.Load() {
 		log.Println("Engine not initialized")
 		return
