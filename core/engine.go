@@ -1,48 +1,65 @@
 package core
 
-import "log"
+import (
+	"log"
+	"time"
 
+	"go.uber.org/atomic"
+)
+
+var isEngineInitialized = atomic.NewBool(false)
 var instruments []Instrument
-var isEngineStarted bool
-var isOrderMatchingStarted bool
+var isEngineRunning *atomic.Bool
+var ordersMatching *atomic.Bool
+var orderChannel chan Order
+var tradeExecutionChannel chan TradeExecutionReport
 
 /*Initialize - Initializes the engine. Currently the implementation only includes creating orderbooks for each security*/
 func Initialize(instruments []Instrument) {
-
+	isEngineInitialized.Store(true)
+	isEngineRunning = atomic.NewBool(false)
+	ordersMatching = atomic.NewBool(false)
+	orderChannel = make(chan Order, 999999)
+	tradeExecutionChannel = make(chan TradeExecutionReport, 999999)
 }
 
-/*Start - Starts up the engine allowing for submitting/cancelling/matching of orders. If matching is to be deferred, use StartWithoutMatching*/
-func Start() {
-	isEngineStarted = true
-	isOrderMatchingStarted = true
-}
-
-/*StartWithoutOrderMatching - Starts up the engine allowing for submitting/cancelling of orders.*/
-func StartWithoutOrderMatching() {
-	isEngineStarted = true
-}
-
-/*StartOrderMatching - Start order matching. The engine has to be in the started state else error is thrown*/
-func StartOrderMatching() {
-	if !isEngineStarted {
-		log.Fatal("Trade matching engine is down")
+/*
+Start - Starts up the engine allowing for submitting/cancelling/matching of orders.
+Allows specification of a time duration to defer matching orders in the case of auction phase
+*/
+func Start(deferMatchingDuration time.Duration) (orderChannel chan<- Order,
+	tradeExecutionChannel <-chan TradeExecutionReport) {
+	if !isEngineInitialized.Load() {
+		log.Println("Engine not initialized")
+		return
 	}
-	isOrderMatchingStarted = true
-	go matchOrders()
+	go acceptOrders()
+	go matchOrders(deferMatchingDuration)
+	return orderChannel, tradeExecutionChannel
 }
 
-func matchOrders() {
+func matchOrders(deferMatchingDuration time.Duration) {
 
 }
 
-func SubmitOrder(order Order) {
-	if !isEngineStarted {
-		log.Fatal("Trade matching engine is down")
+func acceptOrders() {
+	isEngineRunning.Store(true)
+	for {
+		if !isEngineRunning.Load() {
+			break
+		}
+		//var order = <-orderChannel
+		//map[order.SecurityID
 	}
 }
 
-func CancelOrder(orderId string) {
-	if !isEngineStarted {
-		log.Fatal("Trade matching engine is down")
+/*Stop - Stop engine*/
+func Stop() {
+	if !isEngineRunning.Load() {
+		log.Println("Engine not running")
+		return
 	}
+	log.Println("Stopping order matching")
+	ordersMatching.Store(false)
+	isEngineRunning.Store(false)
 }

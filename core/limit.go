@@ -1,11 +1,11 @@
 package core
 
 import (
-	. "github.com/robaho/fixed"
+	"github.com/robaho/fixed"
 )
 
 type Limit struct {
-	LmtPx Fixed
-	Qty   Fixed
+	LmtPx fixed.Fixed
+	Qty   fixed.Fixed
 	Head  *Order
 }
