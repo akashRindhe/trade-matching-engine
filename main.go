@@ -1,7 +1,13 @@
 package main
 
-func main() {
+import (
+	"trade-matching-engine/core"
+)
 
+func main() {
+	ins := []core.Instrument{"AAPL", "IBM"}
+	e := core.NewTradeMatchingEngine(ins)
+	e.Stop()
 }
 
 /*
